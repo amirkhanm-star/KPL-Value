@@ -1,0 +1,1360 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KPL Value Dashboard — KVI</title>
+<style>
+:root{
+  --green:#16A34A; --green-br:#22C55E; --green-bg:#E4F7EC; --green-dk:#14532D;
+  --navy:#0D1B2A; --navy2:#16263D; --navy3:#22334C;
+  --ink:#0D1B2A; --sub:#51607A; --mute:#8493AC;
+  --bg:#FFFFFF; --panel:#F7F9FB; --gray:#EEF1F5; --line:#DCE3EC;
+  --amber:#D97706; --amber-bg:#FDECD3; --red:#DC2626; --red-bg:#FDE7E7;
+  --blue:#2563EB;
+  --r:10px;
+  --shadow:0 1px 2px rgba(13,27,42,.05), 0 4px 16px rgba(13,27,42,.04);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  background:var(--bg); color:var(--ink); font-size:14px; line-height:1.45;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1440px;margin:0 auto;padding:0 28px 60px}
+
+/* ---------- header ---------- */
+header{
+  border-bottom:1px solid var(--line); background:#fff;
+  position:sticky; top:0; z-index:50;
+}
+.hd{max-width:1440px;margin:0 auto;padding:14px 28px;display:flex;align-items:center;gap:18px}
+.logo{display:flex;align-items:baseline;gap:10px}
+.logo b{font-size:19px;letter-spacing:-.3px;font-weight:700}
+.logo b i{color:var(--green);font-style:normal}
+.logo span{font-size:10px;letter-spacing:1.6px;color:var(--mute);text-transform:uppercase;font-weight:600}
+.hd-right{margin-left:auto;display:flex;align-items:center;gap:14px}
+.season{
+  background:var(--green-bg);color:var(--green-dk);font-weight:700;font-size:11.5px;
+  padding:5px 11px;border-radius:99px;letter-spacing:.6px;
+}
+.author{font-size:12px;color:var(--sub);text-align:right;line-height:1.3}
+.author b{display:block;color:var(--ink);font-size:12.5px}
+.tabs{display:flex;gap:2px;margin-left:6px}
+.tab{
+  border:0;background:none;font:inherit;font-size:12.5px;font-weight:600;color:var(--sub);
+  padding:7px 13px;border-radius:8px;cursor:pointer;
+}
+.tab:hover{background:var(--gray)}
+.tab.on{background:var(--navy);color:#fff}
+
+/* ---------- generic ---------- */
+.sec{margin-top:26px}
+.sec-h{display:flex;align-items:baseline;gap:12px;margin-bottom:11px}
+.sec-h h2{font-size:13px;letter-spacing:1.4px;text-transform:uppercase;margin:0;font-weight:700;color:var(--ink)}
+.sec-h .note{font-size:11.5px;color:var(--mute)}
+.card{background:#fff;border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
+.pad{padding:16px 18px}
+.muted{color:var(--mute)}
+.small{font-size:11.5px}
+
+/* ---------- KPI ---------- */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:15px 17px;box-shadow:var(--shadow)}
+.kpi .lab{font-size:10.5px;letter-spacing:1.2px;text-transform:uppercase;color:var(--mute);font-weight:700}
+.kpi .val{font-size:33px;font-weight:700;letter-spacing:-1px;margin-top:5px;line-height:1}
+.kpi .sub{font-size:11px;color:var(--mute);margin-top:5px}
+.kpi.g .val{color:var(--green)}
+.kpi.n .val{color:var(--navy)}
+
+/* ---------- filters ---------- */
+.filters{display:grid;grid-template-columns:repeat(5,1fr) auto;gap:14px;align-items:end}
+.f label{display:block;font-size:10px;letter-spacing:1.1px;text-transform:uppercase;color:var(--mute);font-weight:700;margin-bottom:5px}
+select,input[type=text]{
+  width:100%;font:inherit;font-size:13px;padding:7px 9px;border:1px solid var(--line);
+  border-radius:7px;background:#fff;color:var(--ink);
+}
+select:focus,input:focus{outline:2px solid var(--green-br);outline-offset:-1px}
+.seg{display:flex;border:1px solid var(--line);border-radius:7px;overflow:hidden}
+.seg button{
+  flex:1;border:0;background:#fff;font:inherit;font-size:12px;font-weight:600;color:var(--sub);
+  padding:7px 0;cursor:pointer;border-right:1px solid var(--line);
+}
+.seg button:last-child{border-right:0}
+.seg button.on{background:var(--green);color:#fff}
+.rng{display:flex;align-items:center;gap:7px}
+.rng input[type=range]{flex:1;accent-color:var(--green);min-width:0}
+.rng .v{font-size:11.5px;font-weight:700;color:var(--ink);white-space:nowrap;min-width:52px;text-align:right}
+.btn{
+  border:1px solid var(--line);background:#fff;font:inherit;font-size:12.5px;font-weight:600;
+  color:var(--sub);padding:8px 14px;border-radius:7px;cursor:pointer;white-space:nowrap;
+}
+.btn:hover{border-color:var(--green);color:var(--green)}
+.btn.primary{background:var(--navy);color:#fff;border-color:var(--navy)}
+.btn.primary:hover{background:var(--green);border-color:var(--green);color:#fff}
+
+/* ---------- layout ---------- */
+.grid-main{display:grid;grid-template-columns:1.35fr 1fr;gap:18px;align-items:start}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
+
+/* ---------- chart ---------- */
+.chart-head{display:flex;align-items:center;gap:10px;padding:14px 18px 0}
+.chart-head h3{margin:0;font-size:14.5px;font-weight:700}
+.chart-head .sp{margin-left:auto;display:flex;gap:7px}
+svg.plot{display:block;width:100%;height:auto}
+.tip{
+  position:fixed;pointer-events:none;background:var(--navy);color:#fff;border-radius:8px;
+  padding:9px 11px;font-size:11.5px;line-height:1.5;z-index:200;box-shadow:0 6px 22px rgba(0,0,0,.22);
+  opacity:0;transition:opacity .09s;max-width:250px;
+}
+.tip b{color:var(--green-br)}
+.tip .r{display:flex;justify-content:space-between;gap:14px}
+.tip .r span:first-child{color:var(--mute)}
+
+/* ---------- table ---------- */
+.tbl-wrap{max-height:452px;overflow:auto}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{
+  position:sticky;top:0;background:var(--navy);color:#fff;font-size:10.5px;letter-spacing:.7px;
+  text-transform:uppercase;padding:9px 8px;text-align:left;font-weight:700;cursor:pointer;white-space:nowrap;
+}
+th:hover{background:var(--navy3)}
+th .ar{opacity:.45;font-size:9px}
+td{padding:8px;border-bottom:1px solid var(--line);white-space:nowrap}
+tbody tr{cursor:pointer}
+tbody tr:hover{background:var(--green-bg)}
+tbody tr.on{background:var(--green-bg);box-shadow:inset 3px 0 0 var(--green)}
+td.ui{font-weight:700;font-size:14px}
+.rank{color:var(--mute);font-weight:700;width:26px}
+.pname{font-weight:600}
+.badge{display:inline-block;font-size:10px;font-weight:700;padding:2.5px 7px;border-radius:99px;white-space:nowrap}
+.b-su{background:var(--green);color:#fff}
+.b-u{background:var(--green-bg);color:var(--green-dk)}
+.b-f{background:var(--gray);color:var(--sub)}
+.b-o{background:var(--amber-bg);color:var(--amber)}
+.b-so{background:var(--red-bg);color:var(--red)}
+.b-x{background:#F1F3F7;color:var(--mute);border:1px dashed #C3CCDA}
+
+/* ---------- profile ---------- */
+.prof-empty{padding:52px 20px;text-align:center;color:var(--mute);font-size:13px}
+.prof-hd{padding:16px 18px;border-bottom:1px solid var(--line)}
+.prof-hd h3{margin:0;font-size:22px;font-weight:700;letter-spacing:-.4px}
+.prof-hd .meta{font-size:12.5px;color:var(--sub);margin-top:3px}
+.prof-kpi{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--line)}
+.prof-kpi div{padding:12px 14px;border-right:1px solid var(--line)}
+.prof-kpi div:last-child{border-right:0}
+.prof-kpi .l{font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--mute);font-weight:700}
+.prof-kpi .v{font-size:19px;font-weight:700;margin-top:3px;letter-spacing:-.5px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line)}
+.stat{background:#fff;padding:9px 12px}
+.stat .l{font-size:10px;color:var(--mute);letter-spacing:.4px}
+.stat .v{font-size:15px;font-weight:700;margin-top:1px}
+.stat .v.na{color:var(--mute);font-weight:600;font-size:12px;font-style:italic}
+.sub-h{font-size:11px;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;color:var(--sub);padding:14px 18px 0}
+
+/* ---------- matrix ---------- */
+.matrix{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.quad{
+  border:1px solid var(--line);border-radius:var(--r);padding:15px 16px;cursor:pointer;background:#fff;
+  transition:.12s;
+}
+.quad:hover{border-color:var(--green);transform:translateY(-1px);box-shadow:var(--shadow)}
+.quad.on{border-color:var(--green);background:var(--green-bg)}
+.quad .t{font-size:10.5px;letter-spacing:1px;text-transform:uppercase;color:var(--mute);font-weight:700}
+.quad .n{font-size:26px;font-weight:700;letter-spacing:-.8px;margin-top:4px}
+.quad .d{font-size:11.5px;color:var(--sub);margin-top:2px}
+.quad.q1 .n{color:var(--green)}
+.quad.q2 .n{color:var(--blue)}
+.quad.q3 .n{color:var(--amber)}
+.quad.q4 .n{color:var(--mute)}
+
+/* ---------- methodology / details ---------- */
+details{border:1px solid var(--line);border-radius:var(--r);background:#fff;margin-top:12px}
+summary{
+  padding:13px 18px;cursor:pointer;font-weight:700;font-size:13px;list-style:none;
+  display:flex;align-items:center;gap:9px;
+}
+summary::-webkit-details-marker{display:none}
+summary::before{content:"+";color:var(--green);font-weight:700;font-size:16px;width:14px}
+details[open] summary::before{content:"\2013"}
+.det-body{padding:0 18px 18px;border-top:1px solid var(--line);padding-top:15px}
+.flow{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin-bottom:15px}
+.flow span{background:var(--navy);color:#fff;font-size:11px;font-weight:700;padding:7px 11px;border-radius:7px}
+.flow span.g{background:var(--green)}
+.flow i{color:var(--mute);font-style:normal}
+.fml{
+  font-family:"Cambria",Georgia,serif;background:var(--navy);color:#fff;padding:11px 15px;
+  border-radius:8px;font-size:15px;margin:7px 0;
+}
+.fml em{color:var(--green-br);font-style:normal;font-weight:700}
+
+/* ---------- alert ---------- */
+.alert{
+  border:1px solid var(--amber);background:var(--amber-bg);border-radius:var(--r);
+  padding:13px 16px;font-size:12.5px;color:#7C4A06;line-height:1.55;
+}
+.alert b{color:#5C3703}
+.alert.info{border-color:var(--line);background:var(--panel);color:var(--sub)}
+.alert.info b{color:var(--ink)}
+
+/* ---------- coverage bar ---------- */
+.cov{display:flex;align-items:center;gap:8px}
+.covbar{height:6px;flex:1;background:var(--gray);border-radius:99px;overflow:hidden;min-width:44px}
+.covbar i{display:block;height:100%;background:var(--green);border-radius:99px}
+.covbar i.low{background:var(--amber)}
+.covbar i.bad{background:var(--red)}
+.covtx{font-size:11px;font-weight:700;color:var(--sub);min-width:34px;text-align:right}
+
+/* ---------- validation / future ---------- */
+.vflow{display:flex;flex-direction:column;gap:9px;align-items:flex-start}
+.vstep{background:var(--navy);color:#fff;border-radius:8px;padding:11px 15px;width:100%}
+.vstep .y{font-size:12px;font-weight:700;color:var(--green-br)}
+.vstep .t{font-size:12.5px;margin-top:2px}
+.vpending{
+  border:1.5px dashed var(--amber);background:var(--amber-bg);border-radius:8px;
+  padding:16px;text-align:center;color:var(--amber);font-weight:700;font-size:13px;width:100%;
+}
+.tagfut{
+  display:inline-block;background:var(--amber-bg);color:var(--amber);font-size:10px;font-weight:700;
+  letter-spacing:.8px;padding:4px 10px;border-radius:99px;
+}
+
+/* ---------- footer ---------- */
+footer{border-top:1px solid var(--line);margin-top:44px;padding:22px 0 0;font-size:12px;color:var(--sub)}
+footer b{color:var(--ink);font-size:13px}
+footer .dis{margin-top:9px;font-style:italic;color:var(--mute);font-size:11.5px}
+
+.hidden{display:none !important}
+@media(max-width:1150px){
+  .grid-main,.grid-2{grid-template-columns:1fr}
+  .kpis{grid-template-columns:repeat(2,1fr)}
+  .filters{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+<div class="tip" id="tip"></div>
+
+<header>
+  <div class="hd">
+    <div class="logo">
+      <b>KPL <i>VALUE</i></b>
+      <span>Data-driven player valuation</span>
+    </div>
+    <div class="tabs">
+      <button class="tab on" data-tab="dash">Dashboard</button>
+      <button class="tab" data-tab="valid">Model validation</button>
+      <button class="tab" data-tab="about">Methodology</button>
+    </div>
+    <div class="hd-right">
+      <div class="season">KPL 2025</div>
+      <div class="author"><b>Әмірхан Мағжан</b>НИШ г. Астаны · Экономика</div>
+    </div>
+  </div>
+</header>
+<div class="wrap">
+
+<!-- ============ TAB: DASHBOARD ============ -->
+<div id="tab-dash">
+
+  <!-- data warning, filled by JS -->
+  <div class="sec" id="dataWarn"></div>
+
+  <!-- SECTION 1 — OVERVIEW -->
+  <div class="sec">
+    <div class="sec-h"><h2>Overview</h2><span class="note">Все значения рассчитываются из базы при каждом изменении фильтров</span></div>
+    <div class="kpis">
+      <div class="kpi n"><div class="lab">Players analyzed</div><div class="val" id="k1">—</div><div class="sub" id="k1s">&nbsp;</div></div>
+      <div class="kpi g"><div class="lab">Undervalued</div><div class="val" id="k2">—</div><div class="sub" id="k2s">&nbsp;</div></div>
+      <div class="kpi g"><div class="lab">Strongly undervalued</div><div class="val" id="k3">—</div><div class="sub" id="k3s">&nbsp;</div></div>
+      <div class="kpi n"><div class="lab">Pearson r</div><div class="val" id="k4">—</div><div class="sub" id="k4s">&nbsp;</div></div>
+    </div>
+  </div>
+
+  <!-- SECTION 2 — FILTERS -->
+  <div class="sec">
+    <div class="sec-h"><h2>Filters</h2></div>
+    <div class="card pad">
+      <div class="filters">
+        <div class="f">
+          <label>Position</label>
+          <div class="seg" id="fPos">
+            <button data-v="ALL" class="on">All</button>
+            <button data-v="FW">FW</button>
+            <button data-v="MF">MF</button>
+            <button data-v="DF">DF</button>
+          </div>
+        </div>
+        <div class="f">
+          <label>Club</label>
+          <select id="fClub"><option value="ALL">All clubs</option></select>
+        </div>
+        <div class="f">
+          <label>Max age <span id="fAgeV" class="muted"></span></label>
+          <div class="rng">
+            <input type="range" id="fAge" min="16" max="40" value="40">
+            <span class="v" id="fAgeT">≤ 40</span>
+          </div>
+        </div>
+        <div class="f">
+          <label>Max market value</label>
+          <div class="rng">
+            <input type="range" id="fMv" min="0" max="100" value="100">
+            <span class="v" id="fMvT">все</span>
+          </div>
+        </div>
+        <div class="f">
+          <label>Category</label>
+          <select id="fCat">
+            <option value="ALL">All categories</option>
+            <option value="SU">Strongly Undervalued</option>
+            <option value="U">Undervalued</option>
+            <option value="F">Fair Value</option>
+            <option value="O">Overvalued</option>
+            <option value="SO">Strongly Overvalued</option>
+          </select>
+        </div>
+        <div class="f">
+          <button class="btn" id="fReset">Reset filters</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 3+4 — SCATTER + RANKING -->
+  <div class="sec">
+    <div class="grid-main">
+
+      <div class="card">
+        <div class="chart-head">
+          <h3>Performance vs Market Value</h3>
+          <div class="sp">
+            <button class="btn small" id="dlChart">Download chart</button>
+          </div>
+        </div>
+        <div style="padding:4px 10px 12px">
+          <svg class="plot" id="scatter" viewBox="0 0 720 470" xmlns="http://www.w3.org/2000/svg"></svg>
+          <div class="small muted" style="padding:0 8px">
+            X = normalized Market Value (z внутри позиции) · Y = normalized KVI_adj ·
+            подписаны только TOP-5 по UI · клик по точке открывает профиль
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="chart-head">
+          <h3>Top undervalued players</h3>
+          <div class="sp"><button class="btn small" id="dlCsv">Download CSV</button></div>
+        </div>
+        <div style="padding:10px 14px 0" class="small muted" id="tblNote"></div>
+        <div class="tbl-wrap">
+          <table id="tbl">
+            <thead><tr>
+              <th data-s="rank">#</th>
+              <th data-s="name">Player</th>
+              <th data-s="club">Club</th>
+              <th data-s="group">Pos</th>
+              <th data-s="mv">Market Value</th>
+              <th data-s="kvi">KVI</th>
+              <th data-s="ui">UI</th>
+              <th data-s="ui">Category</th>
+            </tr></thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SECTION 5 — PLAYER PROFILE -->
+  <div class="sec">
+    <div class="sec-h"><h2>Player profile</h2><span class="note">Выберите игрока в таблице или на графике</span></div>
+    <div class="grid-main">
+      <div class="card" id="profCard">
+        <div class="prof-empty" id="profEmpty">Игрок не выбран — кликните строку в рейтинге или точку на графике</div>
+        <div id="profBody" class="hidden">
+          <div class="prof-hd">
+            <div style="display:flex;align-items:flex-start;gap:12px">
+              <div style="flex:1">
+                <h3 id="pName"></h3>
+                <div class="meta" id="pMeta"></div>
+              </div>
+              <button class="btn small" id="dlReport">Export player report</button>
+            </div>
+          </div>
+          <div class="prof-kpi">
+            <div><div class="l">Market value</div><div class="v" id="pMv"></div></div>
+            <div><div class="l">KVI_adj</div><div class="v" id="pKvi"></div></div>
+            <div><div class="l">UI</div><div class="v" id="pUi"></div></div>
+            <div><div class="l">Category</div><div class="v" style="font-size:12.5px" id="pCat"></div></div>
+          </div>
+          <div class="sub-h">Statistical profile · KPL 2025</div>
+          <div style="padding:10px 18px 18px">
+            <div class="stats" id="pStats" style="border:1px solid var(--line);border-radius:8px;overflow:hidden"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" id="chartsCard">
+        <div class="sub-h">Player vs position average</div>
+        <div style="padding:6px 12px 0">
+          <svg class="plot" id="radar" viewBox="0 0 380 300" xmlns="http://www.w3.org/2000/svg"></svg>
+        </div>
+        <div class="sub-h">What drives this player's KVI?</div>
+        <div style="padding:6px 12px 16px">
+          <svg class="plot" id="break" viewBox="0 0 380 210" xmlns="http://www.w3.org/2000/svg"></svg>
+          <div class="small muted" style="padding:0 6px">Вклад каждого компонента: w<sub>i</sub> × z<sub>i</sub></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 6 — VALUE MATRIX -->
+  <div class="sec">
+    <div class="sec-h"><h2>Value matrix</h2><span class="note">Клик по квадранту фильтрует остальные компоненты</span></div>
+    <div class="matrix">
+      <div class="quad q1" data-q="q1"><div class="t">High KVI / Low value</div><div class="n" id="q1n">0</div><div class="d">Undervalued — приоритет для скаутинга</div></div>
+      <div class="quad q2" data-q="q2"><div class="t">High KVI / High value</div><div class="n" id="q2n">0</div><div class="d">Stars — эффективны, но дороги</div></div>
+      <div class="quad q4" data-q="q4"><div class="t">Low KVI / Low value</div><div class="n" id="q4n">0</div><div class="d">Low-cost / low-performance</div></div>
+      <div class="quad q3" data-q="q3"><div class="t">Low KVI / High value</div><div class="n" id="q3n">0</div><div class="d">Overvalued — риск переплаты</div></div>
+    </div>
+  </div>
+
+  <!-- SECTION 8 — DATA QUALITY -->
+  <div class="sec">
+    <div class="sec-h"><h2>Data quality</h2><span class="note">Научная честность: модель не выдаёт результат там, где нет данных</span></div>
+    <div class="grid-2">
+      <div class="card pad" id="dqBox"></div>
+      <div class="card pad" id="dqCov"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ============ TAB: VALIDATION ============ -->
+<div id="tab-valid" class="hidden">
+  <div class="sec">
+    <div class="sec-h"><h2>Model validation</h2><span class="note">Проверка модели на данных следующего сезона</span></div>
+    <div class="grid-2">
+      <div class="card pad">
+        <div class="vflow">
+          <div class="vstep"><div class="y">2025</div><div class="t">KVI_adj → UI → список потенциально недооценённых игроков</div></div>
+          <div style="color:var(--mute);padding-left:14px">↓</div>
+          <div class="vstep"><div class="y">2026</div><div class="t">Market Value · Performance · Transfer · изменение UI</div></div>
+          <div style="color:var(--mute);padding-left:14px">↓</div>
+          <div class="vpending">DID THE MODEL IDENTIFY VALUE?<br><span style="font-weight:600;font-size:12px">Validation in progress</span></div>
+        </div>
+      </div>
+      <div class="card pad">
+        <div class="alert info">
+          <b>Как это будет работать</b><br>
+          Архитектура dashboard уже поддерживает загрузку данных 2026 года. После их появления
+          система автоматически сопоставит по каждому игроку из списка 2025:
+          <ul style="margin:9px 0 0;padding-left:19px">
+            <li>изменение рыночной стоимости (€);</li>
+            <li>изменение статистической эффективности;</li>
+            <li>факт перехода в другой клуб;</li>
+            <li>изменение UI между сезонами.</li>
+          </ul>
+        </div>
+        <div class="alert" style="margin-top:13px">
+          <b>Результат валидации не генерируется.</b> Пока данные сезона 2026 отсутствуют,
+          dashboard показывает статус «Validation in progress» и не выводит никаких выводов
+          о подтверждении модели.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-h"><h2>Future development</h2></div>
+    <div class="card pad">
+      <span class="tagfut">PROPOSED FUTURE DEVELOPMENT</span>
+      <div class="flow" style="margin-top:13px">
+        <span>MATCH VIDEO</span><i>→</i>
+        <span>PLAYER TRACKING</span><i>→</i>
+        <span>NEW METRICS</span><i>→</i>
+        <span class="g">KVI 2.0</span>
+      </div>
+      <div class="grid-2" style="gap:12px">
+        <div class="alert info"><b>Movement</b><br>Дистанция, интенсивность, траектории перемещения</div>
+        <div class="alert info"><b>Positioning</b><br>Зоны активности, позиционная дисциплина</div>
+      </div>
+      <div class="alert info" style="margin-top:12px"><b>Off-ball actions</b><br>Действия без мяча, участие в прессинге, открывания</div>
+      <div class="alert" style="margin-top:13px">
+        Модуль computer vision <b>не реализован</b> и не участвует в текущих расчётах KVI.
+        Это обозначенное направление дальнейшего развития исследования.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ TAB: METHODOLOGY ============ -->
+<div id="tab-about" class="hidden">
+  <div class="sec">
+    <div class="sec-h"><h2>How KVI works</h2></div>
+    <div class="card pad">
+      <div class="flow">
+        <span>PLAYER DATA</span><i>→</i>
+        <span>POSITIONAL Z-SCORE</span><i>→</i>
+        <span>WEIGHTS</span><i>→</i>
+        <span class="g">KVI</span><i>→</i>
+        <span>AAF</span><i>→</i>
+        <span class="g">UI</span>
+      </div>
+      <div class="grid-2">
+        <div>
+          <div class="fml"><em>z</em> = (x − μ) / σ</div>
+          <div class="fml"><em>KVI</em> = Σ(w<sub>i</sub> × z<sub>i</sub>)</div>
+          <div class="fml"><em>KVI_adj</em> = KVI × AAF</div>
+          <div class="fml"><em>UI</em> = norm(KVI_adj) − norm(Market&nbsp;Value)</div>
+        </div>
+        <div>
+          <div class="alert info">
+            <b>Позиционная нормализация</b><br>
+            Z-оценка считается <b>внутри позиционной группы</b> (FW / MF / DF), а не среди всех
+            игроков. Форвард сравнивается с форвардами, защитник — с защитниками.
+            Вратари исключены из модели.
+          </div>
+          <div class="alert info" style="margin-top:12px">
+            <b>Age Adjustment Factor</b><br>
+            age &lt; 25: AAF = 1 + 0.05 × (25 − age) / 10<br>
+            25 ≤ age ≤ 29: AAF = 1<br>
+            age &gt; 29: AAF = 1 − 0.03 × (age − 29) / 10
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <details open>
+      <summary>Веса модели по позициям и их фактическое покрытие данными</summary>
+      <div class="det-body" id="wTable"></div>
+    </details>
+
+    <details>
+      <summary>Категории Undervaluation Index</summary>
+      <div class="det-body">
+        <table style="font-size:13px">
+          <tbody>
+            <tr><td><b>UI &gt; +1.0</b></td><td><span class="badge b-su">Strongly Undervalued</span></td><td class="muted">Эффективность существенно выше рыночной оценки</td></tr>
+            <tr><td><b>+0.5 &lt; UI ≤ +1.0</b></td><td><span class="badge b-u">Undervalued</span></td><td class="muted">Эффективность превышает рыночную оценку</td></tr>
+            <tr><td><b>−0.5 ≤ UI ≤ +0.5</b></td><td><span class="badge b-f">Fair Value</span></td><td class="muted">Стоимость соответствует эффективности</td></tr>
+            <tr><td><b>−1.0 ≤ UI &lt; −0.5</b></td><td><span class="badge b-o">Overvalued</span></td><td class="muted">Стоимость превышает эффективность</td></tr>
+            <tr><td><b>UI &lt; −1.0</b></td><td><span class="badge b-so">Strongly Overvalued</span></td><td class="muted">Низкая эффективность при высокой стоимости</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </details>
+
+    <details>
+      <summary>Источник данных и обновление базы</summary>
+      <div class="det-body" id="srcBox"></div>
+    </details>
+  </div>
+</div>
+
+<footer>
+  <b>KPL VALUE INDEX</b><br>
+  Research project by Әмірхан Мағжан · Назарбаев Интеллектуальная школа города Астаны · Секция: Экономика<br>
+  Data sources: SofaScore · Transfermarkt · KPL
+  <div class="dis">This model is an analytical scouting aid and does not replace professional scouting evaluation.</div>
+</footer>
+
+</div>
+<script>
+/* ==================================================================
+   KPL VALUE DASHBOARD — MODEL ENGINE
+   Research project: Әмірхан Мағжан, НИШ г. Астаны, секция «Экономика»
+
+   Слои приложения:
+     1. DB          — база игроков (заменяется при обновлении данных)
+     2. MODEL_SPEC  — методология: метрики, веса, AAF, категории UI
+     3. engine      — расчёты (z-score, KVI, AAF, UI, покрытие данными)
+     4. ui          — интерфейс
+
+   ЧТОБЫ ОБНОВИТЬ БАЗУ: заменить массив DB. Ничего больше менять не нужно —
+   все показатели, KPI, ранжирование и корреляция пересчитываются автоматически.
+   Ни одно значение в интерфейсе не захардкожено.
+================================================================== */
+
+/* ---------- 1. DATABASE (KPL 2025) --------------------------------
+   Источник: исследовательская база автора (SofaScore · Transfermarkt · KPL).
+   null = данные отсутствуют. Пропуски НЕ заменяются нулями.
+------------------------------------------------------------------- */
+const SEASON = "KPL 2025";
+const DB = [{"id":1,"name":"Dastan Satpaev","pos":"ST","group":"FW","nat":"КАЗ","club":"Kairat Almaty","age":17.0,"dribbles":68.0,"goals":14.0,"assists":5.0,"passAcc":79.11,"rating":7.43,"mv":3000000.0},{"id":2,"name":"Ivan Bašić","pos":"CM","group":"MF","nat":"БиГ/ХРВ","club":"FC Astana","age":24.0,"dribbles":12.0,"goals":0.0,"assists":1.0,"passAcc":90.14,"rating":7.05,"mv":1200000.0},{"id":3,"name":"Pablo Álvarez","pos":"CDM","group":"MF","nat":"ИСП","club":"FK Aktobe","age":29.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":1200000.0},{"id":4,"name":"Guy-Marcelin Kilama","pos":"CB","group":"DF","nat":"КАМ","club":"Ordabasy","age":26.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":1000000.0},{"id":5,"name":"Branimir Kalaica","pos":"CB","group":"DF","nat":"ХРВ","club":"FC Astana","age":27.0,"dribbles":0.0,"goals":1.0,"assists":1.0,"passAcc":92.92,"rating":6.92,"mv":900000.0},{"id":6,"name":"Luis Guerra","pos":"RW","group":"FW","nat":"ВЕН","club":"Tobol","age":29.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":900000.0},{"id":7,"name":"Daniel Sosah","pos":"ST","group":"FW","nat":"НИГ/ГАН","club":"FK Aktobe","age":27.0,"dribbles":23.0,"goals":2.0,"assists":0.0,"passAcc":72.94,"rating":7.1,"mv":800000.0},{"id":8,"name":"Jorginho","pos":"ST","group":"FW","nat":"ПОР","club":"Kairat Almaty","age":28.0,"dribbles":30.0,"goals":10.0,"assists":5.0,"passAcc":76.86,"rating":7.18,"mv":800000.0},{"id":9,"name":"Ivan Ordets","pos":"CB","group":"DF","nat":"УКР","club":"FK Aktobe","age":33.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":750000.0},{"id":10,"name":"Alibek Kasym","pos":"CB","group":"DF","nat":"КАЗ","club":"FC Astana","age":28.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":750000.0},{"id":11,"name":"Aleksa Amanovic","pos":"CB","group":"DF","nat":"МКД/СРБ","club":"Ordabasy","age":29.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":750000.0},{"id":12,"name":"Hrvoje Ilić","pos":"CAM","group":"MF","nat":"ХРВ","club":"Yelimay","age":27.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":700000.0},{"id":13,"name":"Ivan Miladinovic","pos":"CB","group":"DF","nat":"СРБ/РОС","club":"Yelimay","age":31.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":700000.0},{"id":14,"name":"Kipras Kažukolovas","pos":"CB","group":"DF","nat":"ЛИТ","club":"FC Astana","age":25.0,"dribbles":3.0,"goals":0.0,"assists":0.0,"passAcc":93.96,"rating":6.85,"mv":700000.0},{"id":15,"name":"Aleksandr Zuev","pos":"LW","group":"FW","nat":"КАЗ/РОС","club":"Tobol","age":29.0,"dribbles":33.0,"goals":4.0,"assists":4.0,"passAcc":78.68,"rating":6.86,"mv":700000.0},{"id":16,"name":"Abdoulaye Cissé","pos":"CDM","group":"MF","nat":"ГВИ","club":"Tobol","age":30.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":700000.0},{"id":17,"name":"David Abagna","pos":"CM","group":"MF","nat":"ГАН","club":"Ordabasy","age":27.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":700000.0},{"id":18,"name":"Yuriy Vakulko","pos":"CM","group":"MF","nat":"УКР","club":"Ordabasy","age":28.0,"dribbles":5.0,"goals":0.0,"assists":2.0,"passAcc":83.81,"rating":7.17,"mv":700000.0},{"id":19,"name":"Dan Glazer","pos":"CDM","group":"MF","nat":"ИЗР/ГЕР","club":"Kairat Almaty","age":29.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":700000.0},{"id":20,"name":"Ricardinho","pos":"ST","group":"FW","nat":"БРА","club":"Kairat Almaty","age":25.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":700000.0},{"id":21,"name":"Adilbek Zhumakhanov","pos":"CB","group":"DF","nat":"КАЗ","club":"Yelimay","age":23.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":600000.0},{"id":22,"name":"Artur Shushenachev","pos":"ST","group":"FW","nat":"КАЗ","club":"FK Aktobe","age":28.0,"dribbles":17.0,"goals":7.0,"assists":2.0,"passAcc":75.0,"rating":7.48,"mv":600000.0},{"id":23,"name":"Ajdin Zeljković","pos":"LW","group":"FW","nat":"ШВЕ/БиГ","club":"FK Aktobe","age":28.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":600000.0},{"id":24,"name":"Karlo Bartolec","pos":"RB","group":"DF","nat":"ХРВ","club":"FC Astana","age":31.0,"dribbles":30.0,"goals":0.0,"assists":5.0,"passAcc":83.37,"rating":7.06,"mv":600000.0},{"id":25,"name":"Mihai Căpățînă","pos":"CM","group":"MF","nat":"РУМ","club":"Ordabasy","age":30.0,"dribbles":14.0,"goals":1.0,"assists":0.0,"passAcc":84.63,"rating":7.09,"mv":600000.0},{"id":26,"name":"Egor Khvalko","pos":"CB","group":"DF","nat":"БЛР","club":"FK Atyrau","age":29.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":600000.0},{"id":27,"name":"Luís Mata","pos":"LB","group":"DF","nat":"ПОР","club":"Kairat Almaty","age":28.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":600000.0},{"id":28,"name":"Damir Kasabulat","pos":"CDM","group":"MF","nat":"КАЗ","club":"Kairat Almaty","age":23.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":600000.0},{"id":29,"name":"Pavel Sedko","pos":"RM","group":"MF","nat":"БЛР","club":"Irtish Pavlodar","age":28.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":600000.0},{"id":30,"name":"Temirlan Erlanov","pos":"CB","group":"DF","nat":"КАЗ","club":"FK Aktobe","age":32.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":500000.0},{"id":31,"name":"Dmytro Topalov","pos":"LW","group":"FW","nat":"УКР","club":"FK Aktobe","age":28.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":500000.0},{"id":32,"name":"Yan Vorogovskiy","pos":"LB","group":"DF","nat":"КАЗ","club":"FC Astana","age":29.0,"dribbles":30.0,"goals":0.0,"assists":3.0,"passAcc":82.53,"rating":6.88,"mv":500000.0},{"id":33,"name":"Askhat Tagybergen","pos":"CM","group":"MF","nat":"КАЗ","club":"Tobol","age":35.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":500000.0},{"id":34,"name":"Bektemir Abdumannonov","pos":"LW","group":"FW","nat":"УЗБ","club":"Okzhetpes","age":23.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":500000.0},{"id":35,"name":"Amir Mokhammad","pos":"LB","group":"DF","nat":"РОС/АФГ","club":"Kaisar","age":30.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":500000.0},{"id":36,"name":"Maksim Myakish","pos":"CDM","group":"MF","nat":"БЛР","club":"Tobol","age":26.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":500000.0},{"id":37,"name":"Pape-Alioune Ndiaye","pos":"CB","group":"DF","nat":"ФРА/СЕН","club":"Tobol","age":28.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":500000.0},{"id":38,"name":"Bekkhan Shayzada","pos":"GK","group":"GK","nat":"КАЗ","club":"Ordabasy","age":28.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":500000.0},{"id":39,"name":"Sultanbek Astanov","pos":"RB","group":"DF","nat":"КАЗ","club":"Ordabasy","age":27.0,"dribbles":31.0,"goals":2.0,"assists":1.0,"passAcc":79.16,"rating":null,"mv":500000.0},{"id":40,"name":"Nikola Antić","pos":"LB","group":"DF","nat":"СРБ","club":"Ordabasy","age":32.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":500000.0},{"id":41,"name":"Diego Luna","pos":"CB","group":"DF","nat":"ВЕН","club":"Zhetysu","age":26.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":500000.0},{"id":42,"name":"Jaakko Oksanen","pos":"CM","group":"MF","nat":"ФИН","club":"Kairat Almaty","age":25.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":500000.0},{"id":43,"name":"Alexander Merkel","pos":"CM","group":"MF","nat":"КАЗ/ГЕР","club":"Zhenis Astana","age":34.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":500000.0},{"id":44,"name":"Danila Nechaev","pos":"CB","group":"DF","nat":"БЛР","club":"Irtish Pavlodar","age":26.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":500000.0},{"id":45,"name":"Adilet Sadybekov","pos":"CDM","group":"MF","nat":"КАЗ","club":"Kairat Almaty","age":24.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":500000.0},{"id":46,"name":"Sebastián Zeballos","pos":"RW","group":"FW","nat":"АРГ","club":"Kairat Almaty","age":24.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":500000.0},{"id":47,"name":"Ivan Konovalov","pos":"GK","group":"GK","nat":"РОС","club":"Altay Oskemen","age":31.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":450000.0},{"id":48,"name":"Nikita Korzun","pos":"CDM","group":"MF","nat":"БЛР","club":"FK Aktobe","age":31.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":450000.0},{"id":49,"name":"Maksym Kucheryavyi","pos":"CM","group":"MF","nat":"УКР","club":"Caspiy Aktau","age":24.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":450000.0},{"id":50,"name":"Ramazan Orazov","pos":"CAM","group":"MF","nat":"КАЗ","club":"Yelimay","age":28.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":450000.0},{"id":51,"name":"Nauryzbek Zhagorov","pos":"CM","group":"MF","nat":"КАЗ","club":"Tobol","age":28.0,"dribbles":41.0,"goals":0.0,"assists":2.0,"passAcc":82.21,"rating":6.83,"mv":450000.0},{"id":52,"name":"Thomas Jones","pos":"RW","group":"FW","nat":"ЧИЛ","club":"Kaisar","age":28.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":450000.0},{"id":53,"name":"Elkhan Astanov","pos":"LW","group":"FW","nat":"КАЗ","club":"Ordabasy","age":26.0,"dribbles":23.0,"goals":7.0,"assists":1.0,"passAcc":78.29,"rating":7.13,"mv":450000.0},{"id":54,"name":"Roman Asrankulov","pos":"LB","group":"DF","nat":"КАЗ","club":"Tobol","age":26.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":450000.0},{"id":55,"name":"Dauren Zhumat","pos":"RW","group":"FW","nat":"КАЗ","club":"Tobol","age":27.0,"dribbles":46.0,"goals":13.0,"assists":2.0,"passAcc":73.63,"rating":7.21,"mv":450000.0},{"id":56,"name":"Samson Iyede","pos":"ST","group":"FW","nat":"НИГ","club":"Zhenis Astana","age":28.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":450000.0},{"id":57,"name":"Oiva Jukkola","pos":"LW","group":"FW","nat":"ФИН","club":"Kairat Almaty","age":24.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":450000.0},{"id":58,"name":"Murodzhon Khalmatov","pos":"CM","group":"MF","nat":"КАЗ","club":"Ordabasy","age":22.0,"dribbles":38.0,"goals":2.0,"assists":3.0,"passAcc":74.16,"rating":7.01,"mv":400000.0},{"id":59,"name":"Ariagner Smith","pos":"ST","group":"FW","nat":"НИК","club":"FK Ulytau","age":27.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":400000.0},{"id":60,"name":"Fessou Euloge Placca","pos":"ST","group":"FW","nat":"ТОГ","club":"Yelimay","age":31.0,"dribbles":37.0,"goals":9.0,"assists":2.0,"passAcc":70.1,"rating":7.19,"mv":400000.0},{"id":61,"name":"Dinmukhamed Karaman","pos":"CM","group":"MF","nat":"КАЗ","club":"FC Astana","age":25.0,"dribbles":23.0,"goals":4.0,"assists":3.0,"passAcc":85.26,"rating":7.04,"mv":400000.0},{"id":62,"name":"Mukhammedzhan Seysen","pos":"GK","group":"GK","nat":"КАЗ","club":"FC Astana","age":27.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":400000.0},{"id":63,"name":"Léo Natel","pos":"LW","group":"FW","nat":"БРА","club":"Ordabasy","age":29.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":400000.0},{"id":64,"name":"Luka Imnadze","pos":"LW","group":"FW","nat":"ГРУ","club":"Zhenis Astana","age":28.0,"dribbles":70.0,"goals":3.0,"assists":4.0,"passAcc":75.95,"rating":7.18,"mv":400000.0},{"id":65,"name":"Maksim Plotnikov","pos":"GK","group":"GK","nat":"БЛР","club":"Zhenis Astana","age":28.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":400000.0},{"id":66,"name":"Georgiy Zhukov","pos":"CM","group":"MF","nat":"КАЗ/БЕЛ","club":"FK Aktobe","age":31.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":400000.0},{"id":67,"name":"Uros Milovanović","pos":"ST","group":"FW","nat":"СРБ","club":"Tobol","age":25.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":400000.0},{"id":68,"name":"Amine Talal","pos":"CM","group":"MF","nat":"МАР","club":"Tobol","age":29.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":400000.0},{"id":69,"name":"Danil Ustimenko","pos":"GK","group":"GK","nat":"КАЗ","club":"Tobol","age":25.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":400000.0},{"id":70,"name":"Aleksandr Mrynskiy","pos":"RB","group":"DF","nat":"КАЗ","club":"Kairat Almaty","age":21.0,"dribbles":27.0,"goals":0.0,"assists":4.0,"passAcc":76.61,"rating":7.03,"mv":400000.0},{"id":71,"name":"Temirlan Anarbekov","pos":"GK","group":"GK","nat":"КАЗ","club":"Kairat Almaty","age":22.0,"dribbles":0.0,"goals":0.0,"assists":0.0,"passAcc":85.42,"rating":7.16,"mv":400000.0},{"id":72,"name":"Zhan-Ali Payruz","pos":"LW","group":"FW","nat":"КАЗ","club":"Yelimay","age":26.0,"dribbles":67.0,"goals":1.0,"assists":4.0,"passAcc":75.33,"rating":6.98,"mv":350000.0},{"id":73,"name":"Henrique Devens","pos":"ST","group":"FW","nat":"БРА/ЛЮК","club":"FK Atyrau","age":28.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":350000.0},{"id":74,"name":"Aleksandr Zarutskiy","pos":"GK","group":"GK","nat":"КАЗ/РОС","club":"FK Aktobe","age":32.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":350000.0},{"id":75,"name":"Evgeniy Berezkin","pos":"CM","group":"MF","nat":"БЛР","club":"Yelimay","age":29.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":350000.0},{"id":76,"name":"Oralkhan Omirtaev","pos":"ST","group":"FW","nat":"КАЗ","club":"Okzhetpes","age":27.0,"dribbles":14.0,"goals":4.0,"assists":3.0,"passAcc":67.33,"rating":6.81,"mv":350000.0},{"id":77,"name":"Rubin Hebaj","pos":"ST","group":"FW","nat":"АЛБ","club":"Tobol","age":27.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":350000.0},{"id":78,"name":"Ivan Sviridov","pos":"ST","group":"FW","nat":"КАЗ","club":"Yelimay","age":23.0,"dribbles":22.0,"goals":7.0,"assists":2.0,"passAcc":80.35,"rating":6.89,"mv":350000.0},{"id":79,"name":"Kirill Glushchenkov","pos":"CB","group":"DF","nat":"РОС","club":"Tobol","age":26.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":350000.0},{"id":80,"name":"Aybar Zhaksylykov","pos":"ST","group":"FW","nat":"КАЗ","club":"Yelimay","age":28.0,"dribbles":21.0,"goals":8.0,"assists":1.0,"passAcc":65.33,"rating":6.78,"mv":350000.0},{"id":81,"name":"Samuel Odeoyibo","pos":"CB","group":"DF","nat":"НИГ/ФРА","club":"Altay Oskemen","age":32.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":350000.0},{"id":82,"name":"Higor Gabriel","pos":"CB","group":"DF","nat":"БРА","club":"Yelimay","age":27.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":350000.0},{"id":83,"name":"Aybol Abiken","pos":"CDM","group":"MF","nat":"КАЗ","club":"Kaisar","age":29.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":350000.0},{"id":84,"name":"Duban Palacio","pos":"LW","group":"FW","nat":"КОЛ","club":"Yelimay","age":29.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":325000.0},{"id":85,"name":"Everton Macedo Moraes","pos":"ST","group":"FW","nat":"БРА","club":"Ordabasy","age":24.0,"dribbles":38.0,"goals":6.0,"assists":4.0,"passAcc":77.97,"rating":7.07,"mv":300000.0},{"id":86,"name":"Almas Tyulyubay","pos":"CDM","group":"MF","nat":"КАЗ","club":"Yelimay","age":25.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":300000.0},{"id":87,"name":"Edmilson","pos":"ST","group":"FW","nat":"БРА","club":"Kairat Almaty","age":29.0,"dribbles":2.0,"goals":4.0,"assists":0.0,"passAcc":71.83,"rating":6.98,"mv":300000.0},{"id":88,"name":"Adilkhan Tanzharikov","pos":"RB","group":"DF","nat":"КАЗ","club":"FK Aktobe","age":29.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":300000.0},{"id":89,"name":"Ivan Kuzmichev","pos":"CB","group":"DF","nat":"РОС","club":"Okzhetpes","age":25.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":300000.0},{"id":90,"name":"Adílio Santos","pos":"RW","group":"FW","nat":"БРА","club":"Zhenis Astana","age":32.0,"dribbles":32.0,"goals":6.0,"assists":5.0,"passAcc":79.34,"rating":6.99,"mv":300000.0},{"id":91,"name":"Erkin Tapalov","pos":"RB","group":"DF","nat":"КАЗ","club":"Kairat Almaty","age":32.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":300000.0},{"id":92,"name":"Lucas Áfrico","pos":"CB","group":"DF","nat":"БРА","club":"Kairat Almaty","age":31.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":300000.0},{"id":93,"name":"Marko Vukčević","pos":"RB","group":"DF","nat":"ЧЕР","club":"Tobol","age":32.0,"dribbles":23.0,"goals":4.0,"assists":2.0,"passAcc":79.72,"rating":6.99,"mv":300000.0},{"id":94,"name":"Nemanja Cavnic","pos":"CB","group":"DF","nat":"ЧЕР","club":"Tobol","age":30.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":300000.0},{"id":95,"name":"Ardak Saulet","pos":"RW","group":"FW","nat":"КАЗ","club":"Zhenis Astana","age":29.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":300000.0},{"id":96,"name":"Damir Marat","pos":"RW","group":"FW","nat":"КАЗ","club":"Tobol","age":25.0,"dribbles":64.0,"goals":4.0,"assists":1.0,"passAcc":63.9,"rating":6.85,"mv":300000.0},{"id":97,"name":"Vladyslav Naumets","pos":"RW","group":"FW","nat":"УКР","club":"Ordabasy","age":27.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":300000.0},{"id":98,"name":"Islambek Kuat","pos":"CDM","group":"MF","nat":"КАЗ","club":"Zhenis Astana","age":33.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":300000.0},{"id":99,"name":"Marin Belancic","pos":"CB","group":"DF","nat":"ХРВ","club":"Yelimay","age":25.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":300000.0},{"id":100,"name":"Nemanja Micevic","pos":"CB","group":"DF","nat":"СРБ","club":"Altay Oskemen","age":27.0,"dribbles":null,"goals":null,"assists":null,"passAcc":null,"rating":null,"mv":300000.0}];
+
+/* ---------- 2. MODEL SPECIFICATION -------------------------------- */
+
+// Метрики модели KVI и их веса по позиционным группам.
+// `field` = имя поля в базе; null означает, что показатель в базе пока отсутствует.
+const MODEL_SPEC = {
+  metrics: [
+    { key:"goals",   label:"Goals + xG",               field:"goals",   w:{FW:0.30, MF:0.15, DF:0.05}, higherBetter:true },
+    { key:"assists", label:"Assists + xA",             field:"assists", w:{FW:0.15, MF:0.20, DF:0.08}, higherBetter:true },
+    { key:"keyp",    label:"Key Passes",               field:null,      w:{FW:0.10, MF:0.20, DF:0.10}, higherBetter:true },
+    { key:"tackint", label:"Tackles + Interceptions",  field:null,      w:{FW:0.05, MF:0.15, DF:0.35}, higherBetter:true },
+    { key:"duels",   label:"Duels Won",                field:null,      w:{FW:0.10, MF:0.10, DF:0.20}, higherBetter:true },
+    { key:"rating",  label:"SofaScore Rating",         field:"rating",  w:{FW:0.20, MF:0.15, DF:0.15}, higherBetter:true },
+    { key:"minutes", label:"Minutes Played",           field:null,      w:{FW:0.10, MF:0.05, DF:0.07}, higherBetter:true }
+  ],
+  groups: ["FW","MF","DF"],           // вратари в модель не входят
+  categories: [
+    { key:"SU", label:"Strongly Undervalued", cls:"b-su", test:ui => ui >   1.0 },
+    { key:"U",  label:"Undervalued",          cls:"b-u",  test:ui => ui >   0.5 && ui <=  1.0 },
+    { key:"F",  label:"Fair Value",           cls:"b-f",  test:ui => ui >= -0.5 && ui <=  0.5 },
+    { key:"O",  label:"Overvalued",           cls:"b-o",  test:ui => ui >= -1.0 && ui <  -0.5 },
+    { key:"SO", label:"Strongly Overvalued",  cls:"b-so", test:ui => ui <  -1.0 }
+  ],
+  // Дополнительные показатели базы, не входящие в KVI (только для профиля/радара)
+  extraStats: [
+    { key:"dribbles", label:"Successful dribbles", field:"dribbles" },
+    { key:"passAcc",  label:"Pass accuracy, %",    field:"passAcc", dec:2 }
+  ]
+};
+
+/* ---------- проверка суммы весов (требование методологии) ---------- */
+const WEIGHT_CHECK = (() => {
+  const out = {};
+  MODEL_SPEC.groups.forEach(g => {
+    const sum = MODEL_SPEC.metrics.reduce((s,m) => s + (m.w[g]||0), 0);
+    out[g] = { sum:+sum.toFixed(10), ok: Math.abs(sum - 1) < 1e-9 };
+  });
+  return out;
+})();
+
+/* ---------- 3. ENGINE --------------------------------------------- */
+const engine = (() => {
+
+  const mean = a => a.reduce((s,x)=>s+x,0) / a.length;
+  const sd   = a => { if(a.length<2) return 0; const m=mean(a);
+                      return Math.sqrt(a.reduce((s,x)=>s+(x-m)*(x-m),0)/(a.length-1)); };
+
+  function pearson(xs, ys){
+    const n = xs.length;
+    if (n < 3) return null;
+    const mx = mean(xs), my = mean(ys);
+    let sxy=0, sxx=0, syy=0;
+    for (let i=0;i<n;i++){ const a=xs[i]-mx, b=ys[i]-my; sxy+=a*b; sxx+=a*a; syy+=b*b; }
+    if (sxx===0 || syy===0) return null;
+    return sxy / Math.sqrt(sxx*syy);
+  }
+
+  // Age Adjustment Factor — строго по методологии
+  function aaf(age){
+    if (age == null) return null;
+    if (age < 25)  return 1 + 0.05 * (25 - age) / 10;
+    if (age <= 29) return 1;
+    return 1 - 0.03 * (age - 29) / 10;
+  }
+
+  function categoryOf(ui){
+    const c = MODEL_SPEC.categories.find(c => c.test(ui));
+    return c || MODEL_SPEC.categories[2];
+  }
+
+  /* Метрики, реально присутствующие в загруженной базе.
+     Если показателя нет ни у одного игрока — он исключается из расчёта,
+     а его вес перераспределяется пропорционально между доступными.       */
+  function availableMetrics(db){
+    return MODEL_SPEC.metrics.filter(m =>
+      m.field && db.some(p => p[m.field] !== null && p[m.field] !== undefined)
+    );
+  }
+
+  /* Покрытие модели данными по каждой позиции:
+     какая доля суммарного веса KVI обеспечена реально имеющимися метриками. */
+  function modelCoverage(db){
+    const avail = availableMetrics(db);
+    const out = {};
+    MODEL_SPEC.groups.forEach(g => {
+      const have = avail.reduce((s,m)=>s+(m.w[g]||0),0);
+      out[g] = {
+        covered: have,
+        missing: MODEL_SPEC.metrics.filter(m => !avail.includes(m))
+                   .map(m => ({ label:m.label, w:m.w[g] }))
+                   .filter(x => x.w > 0)
+      };
+    });
+    return { available: avail, missing: MODEL_SPEC.metrics.filter(m=>!avail.includes(m)), byGroup: out };
+  }
+
+  /* ---------- основной расчёт ---------- */
+  function compute(db){
+    const cov   = modelCoverage(db);
+    const avail = cov.available;
+
+    // только полевые игроки заявленных групп
+    const outfield = db.filter(p => MODEL_SPEC.groups.includes(p.group));
+    const keepers  = db.filter(p => !MODEL_SPEC.groups.includes(p.group));
+
+    // покрытие данными на уровне игрока (по метрикам, присутствующим в базе)
+    outfield.forEach(p => {
+      const have = avail.filter(m => p[m.field] !== null && p[m.field] !== undefined);
+      p._have      = have;
+      p._playerCov = avail.length ? have.length / avail.length : 0;
+      // игрок участвует в модели только при полном наборе доступных метрик + age + mv
+      p._eligible  = p._playerCov === 1 && p.age != null && p.mv != null;
+    });
+
+    const eligible = outfield.filter(p => p._eligible);
+    const excluded = outfield.filter(p => !p._eligible);
+
+    // ----- расчёт по каждой позиционной группе отдельно -----
+    MODEL_SPEC.groups.forEach(g => {
+      const grp = eligible.filter(p => p.group === g);
+      if (!grp.length) return;
+
+      // 1. z-score каждой метрики ВНУТРИ позиционной группы
+      const z = {};
+      avail.forEach(m => {
+        const vals = grp.map(p => p[m.field]);
+        const mu = mean(vals), s = sd(vals);
+        z[m.key] = grp.map(p => s === 0 ? 0 : (p[m.field] - mu) / s);
+      });
+
+      // 2. перераспределение весов на доступные метрики (сумма → 1.00)
+      const rawSum = avail.reduce((s,m)=>s+(m.w[g]||0),0);
+      const wAdj = {};
+      avail.forEach(m => { wAdj[m.key] = rawSum > 0 ? (m.w[g]||0) / rawSum : 0; });
+
+      // 3. KVI = Σ(w_i × z_i), затем возрастная корректировка
+      grp.forEach((p,i) => {
+        p._z = {}; p._contrib = {};
+        let kvi = 0;
+        avail.forEach(m => {
+          const zi = z[m.key][i];
+          const c  = wAdj[m.key] * zi;
+          p._z[m.key] = zi;
+          p._contrib[m.key] = c;
+          kvi += c;
+        });
+        p.kvi     = kvi;
+        p.aaf     = aaf(p.age);
+        p.kvi_adj = kvi * p.aaf;
+        p._wAdj   = wAdj;
+      });
+
+      // 4. нормализация KVI_adj и Market Value внутри той же группы → UI
+      const kA = grp.map(p => p.kvi_adj), mA = grp.map(p => p.mv);
+      const kMu = mean(kA), kSd = sd(kA), mMu = mean(mA), mSd = sd(mA);
+      grp.forEach(p => {
+        p.nKvi = kSd === 0 ? 0 : (p.kvi_adj - kMu) / kSd;
+        p.nMv  = mSd === 0 ? 0 : (p.mv      - mMu) / mSd;
+        p.ui   = p.nKvi - p.nMv;
+        p.cat  = categoryOf(p.ui);
+      });
+
+      // средние значения группы для radar chart
+      const avg = {};
+      [...avail, ...MODEL_SPEC.extraStats].forEach(m => {
+        const vs = grp.map(p => p[m.field]).filter(v => v != null);
+        avg[m.key] = vs.length ? mean(vs) : null;
+      });
+      grp.forEach(p => p._groupAvg = avg);
+    });
+
+    // исключённые игроки — без результатов модели
+    excluded.forEach(p => {
+      p.kvi = p.kvi_adj = p.ui = p.nKvi = p.nMv = null;
+      p.cat = { key:"NA", label:"Insufficient data", cls:"b-x" };
+    });
+
+    // корреляция Пирсона: normalized KVI_adj ↔ normalized Market Value
+    const r = pearson(eligible.map(p=>p.nMv), eligible.map(p=>p.nKvi));
+
+    return { all: outfield, eligible, excluded, keepers, coverage: cov, r, weightCheck: WEIGHT_CHECK };
+  }
+
+  return { compute, aaf, pearson, categoryOf, mean, sd };
+})();
+
+/* ---------- расчёт выполняется один раз при загрузке ---------- */
+const MODEL = engine.compute(DB);
+</script>
+<script>
+/* ==================================================================
+   UI LAYER
+================================================================== */
+const $  = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+
+const fmtMv = v => v == null ? "—"
+  : v >= 1e6 ? "€" + (v/1e6).toFixed(2).replace(/\.00$/,"") + "M"
+             : "€" + Math.round(v/1e3) + "K";
+const f2 = v => v == null ? "—" : (v>0?"+":"") + v.toFixed(2);
+const f2p = v => v == null ? "—" : v.toFixed(2);
+
+const state = {
+  pos:"ALL", club:"ALL", age:40, mv:100, cat:"ALL", quad:null,
+  sort:"ui", dir:-1, selected:null
+};
+
+const MV_MAX = Math.max(...MODEL.all.map(p=>p.mv||0));
+
+/* ---------------- filtering ---------------- */
+function mvThreshold(){ return state.mv >= 100 ? Infinity : MV_MAX * state.mv / 100; }
+
+function quadOf(p){
+  if (p.ui == null) return null;
+  const hiK = p.nKvi >= 0, hiV = p.nMv >= 0;
+  if ( hiK && !hiV) return "q1";
+  if ( hiK &&  hiV) return "q2";
+  if (!hiK &&  hiV) return "q3";
+  return "q4";
+}
+
+function filtered(){
+  const th = mvThreshold();
+  return MODEL.eligible.filter(p =>
+    (state.pos  === "ALL" || p.group === state.pos) &&
+    (state.club === "ALL" || p.club  === state.club) &&
+    (p.age <= state.age) &&
+    (p.mv  <= th) &&
+    (state.cat  === "ALL" || p.cat.key === state.cat) &&
+    (!state.quad || quadOf(p) === state.quad)
+  );
+}
+
+/* ---------------- KPI ---------------- */
+function renderKpi(rows){
+  const su = rows.filter(p=>p.cat.key==="SU").length;
+  const u  = rows.filter(p=>p.cat.key==="U").length;
+  const r  = engine.pearson(rows.map(p=>p.nMv), rows.map(p=>p.nKvi));
+
+  $("#k1").textContent = rows.length;
+  $("#k1s").textContent = `из ${MODEL.all.length} полевых игроков базы`;
+  $("#k2").textContent = u + su;
+  $("#k2s").textContent = rows.length ? `${((u+su)/rows.length*100).toFixed(0)}% выборки (UI > +0.5)` : "—";
+  $("#k3").textContent = su;
+  $("#k3s").textContent = "UI > +1.0";
+  $("#k4").textContent = r == null ? "—" : (r>0?"+":"") + r.toFixed(2);
+  $("#k4s").textContent = r == null ? "недостаточно точек" : "norm KVI_adj ↔ norm Market Value";
+
+  ["q1","q2","q3","q4"].forEach(q =>
+    $("#"+q+"n").textContent = rows.filter(p=>quadOf(p)===q).length);
+}
+
+/* ---------------- SCATTER ---------------- */
+function renderScatter(rows){
+  const W=720,H=470, m={t:16,r:18,b:44,l:52};
+  const iw=W-m.l-m.r, ih=H-m.t-m.b;
+  const svg=$("#scatter");
+
+  if(!rows.length){
+    svg.innerHTML=`<text x="${W/2}" y="${H/2}" text-anchor="middle" fill="#8493AC" font-size="14" font-family="sans-serif">Нет игроков, удовлетворяющих фильтрам</text>`;
+    return;
+  }
+
+  const pad=0.65;
+  const xs=rows.map(p=>p.nMv), ys=rows.map(p=>p.nKvi);
+  const x0=Math.min(...xs)-pad, x1=Math.max(...xs)+pad;
+  const y0=Math.min(...ys)-pad, y1=Math.max(...ys)+pad;
+  const X=v=>m.l+(v-x0)/(x1-x0)*iw;
+  const Y=v=>m.t+ih-(v-y0)/(y1-y0)*ih;
+
+  let s="";
+  // квадрант undervalued (Y>0, X<0)
+  const qx=X(x0), qy=Y(y1), qw=Math.max(0,X(0)-X(x0)), qh=Math.max(0,Y(0)-Y(y1));
+  s+=`<rect x="${qx}" y="${qy}" width="${qw}" height="${qh}" fill="#E4F7EC" opacity=".75"/>`;
+  s+=`<text x="${qx+9}" y="${qy+17}" font-size="10.5" font-weight="700" fill="#14532D" font-family="sans-serif">HIGH PERFORMANCE + LOW MARKET VALUE</text>`;
+  s+=`<text x="${qx+9}" y="${qy+31}" font-size="10.5" font-weight="700" fill="#16A34A" font-family="sans-serif">UNDERVALUED</text>`;
+
+  // сетка
+  for(let g=Math.ceil(x0);g<=x1;g++) s+=`<line x1="${X(g)}" y1="${m.t}" x2="${X(g)}" y2="${m.t+ih}" stroke="#EEF1F5"/>`;
+  for(let g=Math.ceil(y0);g<=y1;g++) s+=`<line x1="${m.l}" y1="${Y(g)}" x2="${m.l+iw}" y2="${Y(g)}" stroke="#EEF1F5"/>`;
+
+  // оси-нули
+  s+=`<line x1="${X(0)}" y1="${m.t}" x2="${X(0)}" y2="${m.t+ih}" stroke="#51607A" stroke-width="1.4" stroke-dasharray="5 4"/>`;
+  s+=`<line x1="${m.l}" y1="${Y(0)}" x2="${m.l+iw}" y2="${Y(0)}" stroke="#51607A" stroke-width="1.4" stroke-dasharray="5 4"/>`;
+
+  // рамка + подписи осей
+  s+=`<line x1="${m.l}" y1="${m.t+ih}" x2="${m.l+iw}" y2="${m.t+ih}" stroke="#51607A"/>`;
+  s+=`<line x1="${m.l}" y1="${m.t}" x2="${m.l}" y2="${m.t+ih}" stroke="#51607A"/>`;
+  for(let g=Math.ceil(x0);g<=x1;g++) s+=`<text x="${X(g)}" y="${m.t+ih+15}" text-anchor="middle" font-size="9.5" fill="#8493AC" font-family="sans-serif">${g}</text>`;
+  for(let g=Math.ceil(y0);g<=y1;g++) s+=`<text x="${m.l-7}" y="${Y(g)+3.5}" text-anchor="end" font-size="9.5" fill="#8493AC" font-family="sans-serif">${g}</text>`;
+  s+=`<text x="${m.l+iw/2}" y="${H-8}" text-anchor="middle" font-size="10.5" font-weight="700" fill="#51607A" font-family="sans-serif">normalized Market Value →</text>`;
+  s+=`<text transform="translate(13,${m.t+ih/2}) rotate(-90)" text-anchor="middle" font-size="10.5" font-weight="700" fill="#51607A" font-family="sans-serif">normalized KVI_adj →</text>`;
+
+  // точки
+  const col={SU:"#16A34A",U:"#22C55E",F:"#8493AC",O:"#D97706",SO:"#DC2626"};
+  const top5=[...rows].sort((a,b)=>b.ui-a.ui).slice(0,5);
+  rows.forEach(p=>{
+    const sel = state.selected && state.selected.id===p.id;
+    s+=`<circle class="pt" data-id="${p.id}" cx="${X(p.nMv).toFixed(1)}" cy="${Y(p.nKvi).toFixed(1)}" r="${sel?8:5.5}"
+        fill="${col[p.cat.key]||"#8493AC"}" fill-opacity="${sel?1:.8}"
+        stroke="${sel?"#0D1B2A":"#fff"}" stroke-width="${sel?2.4:1.2}" style="cursor:pointer"/>`;
+  });
+  // подписи только TOP-5 по UI
+  const placed=[];
+  top5.forEach(p=>{
+    const px=X(p.nMv), py=Y(p.nKvi);
+    const right = px < m.l+iw-115;
+    let ly=py+3.5;
+    // сдвигаем подпись, если она накладывается на уже размещённую
+    for(let guard=0; guard<14; guard++){
+      const hit=placed.some(q=>Math.abs(q.y-ly)<12 && Math.abs(q.x-px)<118 && q.right===right);
+      if(!hit) break;
+      ly += 13;
+    }
+    placed.push({x:px,y:ly,right});
+    if(ly!==py+3.5){
+      s+=`<line x1="${px.toFixed(1)}" y1="${py.toFixed(1)}" x2="${(right?px+8:px-8).toFixed(1)}" y2="${(ly-3.5).toFixed(1)}" stroke="#8493AC" stroke-width=".9"/>`;
+    }
+    s+=`<text x="${(right?px+10:px-10).toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="${right?"start":"end"}"
+        font-size="10" font-weight="700" fill="#0D1B2A" font-family="sans-serif"
+        style="paint-order:stroke;stroke:#fff;stroke-width:3.5px">${esc(p.name)}</text>`;
+  });
+
+  svg.innerHTML=s;
+  svg.querySelectorAll(".pt").forEach(c=>{
+    const p=MODEL.all.find(x=>x.id===+c.dataset.id);
+    c.addEventListener("mousemove",e=>showTip(e,p));
+    c.addEventListener("mouseleave",hideTip);
+    c.addEventListener("click",()=>{hideTip();select(p);});
+  });
+}
+
+/* ---------------- tooltip ---------------- */
+function showTip(e,p){
+  const t=$("#tip");
+  t.innerHTML=`<b>${esc(p.name)}</b><br>
+    <div class="r"><span>Club</span><span>${esc(p.club)}</span></div>
+    <div class="r"><span>Position</span><span>${p.pos} (${p.group})</span></div>
+    <div class="r"><span>Age</span><span>${p.age}</span></div>
+    <div class="r"><span>Market Value</span><span>${fmtMv(p.mv)}</span></div>
+    <div class="r"><span>KVI_adj</span><span>${f2p(p.kvi_adj)}</span></div>
+    <div class="r"><span>UI</span><span>${f2(p.ui)}</span></div>
+    <div class="r"><span>Category</span><span>${p.cat.label}</span></div>`;
+  t.style.opacity=1;
+  const w=t.offsetWidth,h=t.offsetHeight;
+  t.style.left=Math.min(e.clientX+14,innerWidth-w-10)+"px";
+  t.style.top=Math.max(8,e.clientY-h-12)+"px";
+}
+function hideTip(){ $("#tip").style.opacity=0; }
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+/* ---------------- TABLE ---------------- */
+function sortRows(rows){
+  const k=state.sort,d=state.dir;
+  const val=p=>({rank:0,name:p.name,club:p.club,group:p.group,mv:p.mv,kvi:p.kvi_adj,ui:p.ui,cov:p._playerCov}[k]);
+  return [...rows].sort((a,b)=>{
+    const x=val(a),y=val(b);
+    if(typeof x==="string") return d*x.localeCompare(y);
+    return d*((x??-1e9)-(y??-1e9));
+  });
+}
+
+function renderTable(rows){
+  const sorted=sortRows(rows);
+  $("#tblNote").textContent =
+    `${sorted.length} игроков · сортировка: ${state.sort.toUpperCase()} ${state.dir<0?"↓":"↑"} · клик по строке открывает профиль`;
+  $("#tbody").innerHTML = sorted.map((p,i)=>{
+    const c=p._playerCov, cls=c>=1?"":c>=.6?"low":"bad";
+    return `<tr data-id="${p.id}" class="${state.selected&&state.selected.id===p.id?"on":""}">
+      <td class="rank">${i+1}</td>
+      <td class="pname">${esc(p.name)}</td>
+      <td class="muted">${esc(p.club)}</td>
+      <td>${p.pos} <span class="muted">(${p.group})</span></td>
+      <td>${fmtMv(p.mv)}</td>
+      <td>${f2p(p.kvi_adj)}</td>
+      <td class="ui" style="color:${p.ui>0.5?"#16A34A":p.ui<-0.5?"#D97706":"#51607A"}">${f2(p.ui)}</td>
+      <td><span class="badge ${p.cat.cls}">${p.cat.label}</span></td>
+    </tr>`;
+  }).join("") || `<tr><td colspan="8" class="muted" style="padding:26px;text-align:center">Нет игроков по заданным фильтрам</td></tr>`;
+
+  $$("#tbody tr[data-id]").forEach(tr=>tr.addEventListener("click",()=>{
+    select(MODEL.all.find(p=>p.id===+tr.dataset.id));
+  }));
+}
+
+/* ---------------- PROFILE ---------------- */
+function select(p){
+  state.selected = (state.selected && state.selected.id===p.id) ? null : p;
+  render();
+  if(state.selected) $("#profCard").scrollIntoView({behavior:"smooth",block:"center"});
+}
+
+function renderProfile(){
+  const p=state.selected;
+  if(!p){ $("#profEmpty").classList.remove("hidden"); $("#profBody").classList.add("hidden");
+          $("#chartsCard").classList.add("hidden");
+          $("#radar").innerHTML=""; $("#break").innerHTML=""; return; }
+  $("#profEmpty").classList.add("hidden"); $("#profBody").classList.remove("hidden");
+  $("#chartsCard").classList.remove("hidden");
+
+  $("#pName").textContent=p.name;
+  $("#pMeta").innerHTML=`${esc(p.club)} · ${p.pos} (${p.group}) · ${p.age} лет · ${esc(p.nat)}
+     &nbsp;·&nbsp; <span class="muted">AAF = ${p.aaf!=null?p.aaf.toFixed(3):"—"}</span>`;
+  $("#pMv").textContent=fmtMv(p.mv);
+  $("#pKvi").textContent=f2p(p.kvi_adj);
+  const ui=$("#pUi"); ui.textContent=f2(p.ui);
+  ui.style.color = p.ui>0.5?"#16A34A":p.ui<-0.5?"#D97706":"#0D1B2A";
+  $("#pCat").innerHTML=`<span class="badge ${p.cat.cls}">${p.cat.label}</span>`;
+
+  // статистический профиль: все метрики модели + доп. показатели
+  const rowsSt = MODEL_SPEC.metrics.map(m=>{
+    if(!m.field) return {l:m.label, v:null, note:"не собрано"};
+    return {l:m.label, v:p[m.field], note:null};
+  }).concat(MODEL_SPEC.extraStats.map(m=>({l:m.label, v:p[m.field], note:null, dec:m.dec})));
+
+  $("#pStats").innerHTML=rowsSt.map(r=>`
+    <div class="stat"><div class="l">${r.l}</div>
+      <div class="v ${r.v==null?"na":""}">${
+        r.v==null ? (r.note||"Data unavailable") : (r.dec?r.v.toFixed(r.dec):r.v)
+      }</div></div>`).join("");
+
+  renderRadar(p);
+  renderBreakdown(p);
+}
+
+/* ---------------- RADAR ---------------- */
+function renderRadar(p){
+  const W=380,H=300,cx=W/2,cy=H/2+6,R=100;
+  const avail=MODEL.coverage.available;
+  const axes=[...avail.map(m=>({key:m.key,label:m.label,field:m.field})),
+              ...MODEL_SPEC.extraStats.map(m=>({key:m.key,label:m.label,field:m.field}))];
+  const n=axes.length;
+  if(n<3){ $("#radar").innerHTML=""; return; }
+
+  // масштаб по максимуму позиционной группы
+  const grp=MODEL.eligible.filter(x=>x.group===p.group);
+  const max={}; axes.forEach(a=>{
+    max[a.key]=Math.max(...grp.map(x=>x[a.field]).filter(v=>v!=null),1e-9);
+  });
+
+  const ang=i=>-Math.PI/2 + i*2*Math.PI/n;
+  const pt=(i,v)=>[cx+Math.cos(ang(i))*R*v, cy+Math.sin(ang(i))*R*v];
+
+  let s="";
+  [0.25,0.5,0.75,1].forEach(l=>{
+    const d=axes.map((_,i)=>pt(i,l).map(v=>v.toFixed(1)).join(",")).join(" ");
+    s+=`<polygon points="${d}" fill="none" stroke="#EEF1F5" stroke-width="1"/>`;
+  });
+  axes.forEach((a,i)=>{
+    const [x,y]=pt(i,1);
+    s+=`<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="#EEF1F5"/>`;
+    const [lx,ly]=pt(i,1.22);
+    const anch = Math.abs(lx-cx)<12 ? "middle" : (lx>cx?"start":"end");
+    s+=`<text x="${lx.toFixed(1)}" y="${(ly+3).toFixed(1)}" text-anchor="${anch}" font-size="8.6" fill="#51607A" font-family="sans-serif">${a.label}</text>`;
+  });
+
+  const poly=(vals,fill,stroke,op)=>{
+    const d=vals.map((v,i)=>pt(i,Math.max(0,Math.min(1,v))).map(x=>x.toFixed(1)).join(",")).join(" ");
+    return `<polygon points="${d}" fill="${fill}" fill-opacity="${op}" stroke="${stroke}" stroke-width="2" stroke-linejoin="round"/>`;
+  };
+  const avgV=axes.map(a=>(p._groupAvg?.[a.key]??0)/max[a.key]);
+  const plV =axes.map(a=>(p[a.field]??0)/max[a.key]);
+  s+=poly(avgV,"#8493AC","#8493AC",.13);
+  s+=poly(plV ,"#16A34A","#16A34A",.28);
+  axes.forEach((a,i)=>{ const [x,y]=pt(i,Math.max(0,Math.min(1,plV[i])));
+    s+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" fill="#16A34A"/>`; });
+
+  s+=`<rect x="10" y="${H-20}" width="11" height="4" rx="2" fill="#16A34A"/>
+      <text x="26" y="${H-16}" font-size="9.5" fill="#51607A" font-family="sans-serif">${esc(p.name)}</text>
+      <rect x="150" y="${H-20}" width="11" height="4" rx="2" fill="#8493AC"/>
+      <text x="166" y="${H-16}" font-size="9.5" fill="#51607A" font-family="sans-serif">Среднее по ${p.group}</text>`;
+  $("#radar").innerHTML=s;
+}
+
+/* ---------------- KVI BREAKDOWN ---------------- */
+function renderBreakdown(p){
+  const avail=MODEL.coverage.available;
+  const items=avail.map(m=>({label:m.label,v:p._contrib?.[m.key]??0,z:p._z?.[m.key]??0,w:p._wAdj?.[m.key]??0}));
+  const W=380,H=210,m0={t:12,r:46,b:26,l:126};
+  const iw=W-m0.l-m0.r, bh=Math.min(30,(H-m0.t-m0.b)/items.length-7);
+  const mx=Math.max(0.35,...items.map(i=>Math.abs(i.v)))*1.1;
+  const X=v=>m0.l+iw/2+(v/mx)*(iw/2);
+
+  let s=`<line x1="${X(0)}" y1="${m0.t-3}" x2="${X(0)}" y2="${H-m0.b+3}" stroke="#51607A" stroke-width="1.2"/>`;
+  items.forEach((it,i)=>{
+    const y=m0.t+i*((H-m0.t-m0.b)/items.length);
+    const x=Math.min(X(0),X(it.v)), w=Math.abs(X(it.v)-X(0));
+    s+=`<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${Math.max(w,1).toFixed(1)}" height="${bh}" rx="3"
+         fill="${it.v>=0?"#16A34A":"#D97706"}" fill-opacity=".88"/>`;
+    s+=`<text x="${m0.l-8}" y="${(y+bh/2+3.5).toFixed(1)}" text-anchor="end" font-size="9.3" fill="#0D1B2A" font-family="sans-serif">${it.label}</text>`;
+    const tx=it.v>=0?X(it.v)+5:X(it.v)-5;
+    s+=`<text x="${tx.toFixed(1)}" y="${(y+bh/2+3.5).toFixed(1)}" text-anchor="${it.v>=0?"start":"end"}"
+         font-size="9.3" font-weight="700" fill="#51607A" font-family="sans-serif">${(it.v>=0?"+":"")+it.v.toFixed(2)}</text>`;
+  });
+  s+=`<text x="${m0.l+iw/2}" y="${H-7}" text-anchor="middle" font-size="9.3" fill="#8493AC" font-family="sans-serif">вклад в KVI = w·z  ·  KVI = ${f2p(p.kvi)}  →  ×AAF ${p.aaf.toFixed(3)}  →  ${f2p(p.kvi_adj)}</text>`;
+  $("#break").innerHTML=s;
+}
+
+/* ---------------- DATA QUALITY ---------------- */
+function renderDataQuality(){
+  const cov=MODEL.coverage;
+  const missing=cov.missing.map(m=>m.label);
+
+  $("#dqBox").innerHTML=`
+    <div style="font-weight:700;font-size:13px;margin-bottom:9px">Состав базы · ${SEASON}</div>
+    <table style="font-size:12.5px">
+      <tbody>
+        <tr><td class="muted">Всего записей в базе</td><td style="text-align:right"><b>${DB.length}</b></td></tr>
+        <tr><td class="muted">Полевых игроков (FW/MF/DF)</td><td style="text-align:right"><b>${MODEL.all.length}</b></td></tr>
+        <tr><td class="muted">Вратарей (исключены из модели)</td><td style="text-align:right"><b>${MODEL.keepers.length}</b></td></tr>
+        <tr><td style="color:#16A34A"><b>Расчёт KVI выполнен</b></td><td style="text-align:right"><b style="color:#16A34A">${MODEL.eligible.length}</b></td></tr>
+        <tr><td style="color:#D97706"><b>Insufficient data</b></td><td style="text-align:right"><b style="color:#D97706">${MODEL.excluded.length}</b></td></tr>
+      </tbody>
+    </table>
+    <div class="alert" style="margin-top:12px">
+      <b>${MODEL.excluded.length} игроков исключены из расчёта.</b>
+      У них отсутствует часть обязательных показателей. Пропуски <b>не заменяются нулями</b>
+      и такие игроки не выводятся как результат модели.
+    </div>`;
+
+  const groupRows=MODEL_SPEC.groups.map(g=>{
+    const c=cov.byGroup[g].covered;
+    const cls=c>=0.8?"":c>=0.5?"low":"bad";
+    const n=MODEL.eligible.filter(p=>p.group===g).length;
+    return `<tr>
+      <td><b>${g}</b> <span class="muted">(${n} игроков)</span></td>
+      <td style="width:130px"><div class="cov"><div class="covbar"><i class="${cls}" style="width:${(c*100).toFixed(0)}%"></i></div>
+        <span class="covtx">${(c*100).toFixed(0)}%</span></div></td>
+    </tr>`;
+  }).join("");
+
+  $("#dqCov").innerHTML=`
+    <div style="font-weight:700;font-size:13px;margin-bottom:4px">Покрытие модели данными</div>
+    <div class="small muted" style="margin-bottom:9px">Доля суммарного веса KVI, обеспеченная реально собранными показателями</div>
+    <table style="font-size:12.5px"><tbody>${groupRows}</tbody></table>
+    ${missing.length?`<div class="alert" style="margin-top:12px">
+      <b>В базе пока нет показателей:</b> ${missing.join(" · ")}.<br>
+      Их веса пропорционально перераспределены между собранными метриками, сумма весов
+      остаётся равной 1.00. Это <b>ограничение текущей базы</b>, а не методологии.
+    </div>`:""}`;
+}
+
+/* ---------------- warning banner ---------------- */
+function renderWarn(){
+  const cov=MODEL.coverage;
+  const weak=MODEL_SPEC.groups.filter(g=>cov.byGroup[g].covered<0.5);
+  if(!cov.missing.length && !weak.length){ $("#dataWarn").innerHTML=""; return; }
+  $("#dataWarn").innerHTML=`<div class="alert">
+    <b>Ограничение текущей базы данных.</b>
+    В базе собраны не все показатели модели: отсутствуют
+    <b>${cov.missing.map(m=>m.label).join(", ")}</b>.
+    KVI рассчитывается по доступным метрикам с пропорциональным перераспределением весов.
+    ${weak.length?`Для групп <b>${weak.join(", ")}</b> покрытие ниже 50% — результаты по этим позициям следует считать предварительными.`:""}
+    Подробности — в секции <b>Data quality</b>.
+  </div>`;
+}
+
+/* ---------------- methodology tables ---------------- */
+function renderMethod(){
+  const cov=MODEL.coverage;
+  const head=`<tr><th style="position:static">Показатель</th><th style="position:static">FW</th>
+    <th style="position:static">MF</th><th style="position:static">DF</th><th style="position:static">В базе</th></tr>`;
+  const body=MODEL_SPEC.metrics.map(m=>{
+    const has=cov.available.includes(m);
+    return `<tr>
+      <td>${m.label}</td>
+      <td>${m.w.FW.toFixed(2)}</td><td>${m.w.MF.toFixed(2)}</td><td>${m.w.DF.toFixed(2)}</td>
+      <td>${has?'<span class="badge b-u">есть</span>':'<span class="badge b-x">не собрано</span>'}</td></tr>`;
+  }).join("");
+  const wc=MODEL.weightCheck;
+  const sums=`<tr style="background:var(--gray)">
+      <td><b>Сумма весов</b></td>
+      ${MODEL_SPEC.groups.map(g=>`<td><b>${wc[g].sum.toFixed(2)}</b> ${wc[g].ok?'<span style="color:#16A34A">✓</span>':'<span style="color:#DC2626">✗</span>'}</td>`).join("")}
+      <td class="muted small">проверка выполняется в коде</td></tr>`;
+  $("#wTable").innerHTML=`<table style="font-size:12.5px"><thead>${head}</thead><tbody>${body}${sums}</tbody></table>
+    <div class="alert info" style="margin-top:12px">
+      Веса заданы автором модели. Программная проверка подтверждает, что сумма весов
+      каждой позиционной группы равна <b>1.00</b>. Если показатель отсутствует в базе,
+      его вес пропорционально перераспределяется между доступными — фактическое покрытие
+      показано в секции Data quality.
+    </div>`;
+
+  $("#srcBox").innerHTML=`
+    <div class="alert info">
+      <b>Сезон:</b> ${SEASON}. Данные разных сезонов не смешиваются.<br>
+      <b>Источники:</b> SofaScore (игровая статистика), Transfermarkt (рыночная стоимость,
+      возраст, клуб, позиция), KPL (справочная информация).<br>
+      <b>Записей в базе:</b> ${DB.length} · <b>клубов:</b> ${new Set(DB.map(p=>p.club)).size}
+    </div>
+    <div class="alert info" style="margin-top:12px">
+      <b>Обновление базы.</b> Данные вынесены в массив <code>DB</code> в начале скрипта.
+      Чтобы обновить базу, достаточно заменить этот массив — все KPI, рейтинг, корреляция,
+      квадранты и графики пересчитываются автоматически. Ни одно значение не захардкожено.
+      Отсутствующие данные должны обозначаться <code>null</code>, а не нулём.
+    </div>`;
+}
+
+/* ---------------- EXPORTS ---------------- */
+function download(name,text,type){
+  const b=new Blob([text],{type:type||"text/plain;charset=utf-8"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(b); a.download=name; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1500);
+}
+
+function exportCsv(){
+  const rows=sortRows(filtered());
+  const head=["Rank","Player","Club","Position","PositionGroup","Age","MarketValueEUR",
+              "KVI","AAF","KVI_adj","norm_KVI_adj","norm_MarketValue","UI","Category","DataCoverage"];
+  const lines=[head.join(",")].concat(rows.map((p,i)=>[
+    i+1,`"${p.name}"`,`"${p.club}"`,p.pos,p.group,p.age,p.mv,
+    p.kvi.toFixed(4),p.aaf.toFixed(4),p.kvi_adj.toFixed(4),
+    p.nKvi.toFixed(4),p.nMv.toFixed(4),p.ui.toFixed(4),
+    `"${p.cat.label}"`,(p._playerCov*100).toFixed(0)+"%"
+  ].join(",")));
+  lines.push("");
+  lines.push(`"Season","${SEASON}"`);
+  lines.push(`"Model","KPL Value Index (KVI) — Amirkhan Magzhan"`);
+  lines.push(`"Sources","SofaScore; Transfermarkt; KPL"`);
+  lines.push(`"Note","Weights redistributed over available metrics; missing values excluded, not zero-filled"`);
+  download(`kpl_value_ranking_${new Date().toISOString().slice(0,10)}.csv`,"\uFEFF"+lines.join("\n"),"text/csv;charset=utf-8");
+}
+
+function exportReport(){
+  const p=state.selected; if(!p) return;
+  const avail=MODEL.coverage.available;
+  const L=[];
+  L.push("KPL VALUE INDEX — PLAYER REPORT");
+  L.push("="+"=".repeat(44));
+  L.push(`Season: ${SEASON}`);
+  L.push(`Generated: ${new Date().toISOString().slice(0,19).replace("T"," ")}`);
+  L.push("");
+  L.push(`PLAYER:        ${p.name}`);
+  L.push(`Club:          ${p.club}`);
+  L.push(`Position:      ${p.pos} (group ${p.group})`);
+  L.push(`Age:           ${p.age}`);
+  L.push(`Nationality:   ${p.nat}`);
+  L.push("");
+  L.push("MODEL OUTPUT");
+  L.push("-".repeat(45));
+  L.push(`Market Value:        ${fmtMv(p.mv)}`);
+  L.push(`KVI (raw):           ${p.kvi.toFixed(3)}`);
+  L.push(`AAF (age factor):    ${p.aaf.toFixed(3)}`);
+  L.push(`KVI_adj:             ${p.kvi_adj.toFixed(3)}`);
+  L.push(`norm KVI_adj:        ${p.nKvi.toFixed(3)}`);
+  L.push(`norm Market Value:   ${p.nMv.toFixed(3)}`);
+  L.push(`UI:                  ${f2(p.ui)}`);
+  L.push(`Category:            ${p.cat.label}`);
+  L.push("");
+  L.push("KVI BREAKDOWN (w_i x z_i)");
+  L.push("-".repeat(45));
+  avail.forEach(m=>{
+    L.push(`${m.label.padEnd(26)} w=${p._wAdj[m.key].toFixed(3)}  z=${p._z[m.key].toFixed(3)}  ->  ${(p._contrib[m.key]>=0?"+":"")+p._contrib[m.key].toFixed(3)}`);
+  });
+  L.push("");
+  L.push("STATISTICAL PROFILE");
+  L.push("-".repeat(45));
+  MODEL_SPEC.metrics.forEach(m=>{
+    L.push(`${m.label.padEnd(26)} ${m.field?(p[m.field]??"Data unavailable"):"not collected"}`);
+  });
+  MODEL_SPEC.extraStats.forEach(m=>{
+    L.push(`${m.label.padEnd(26)} ${p[m.field]??"Data unavailable"}`);
+  });
+  L.push("");
+  L.push("NOTES");
+  L.push("-".repeat(45));
+  L.push("Z-scores are computed within the player's positional group only.");
+  L.push(`Model data coverage for group ${p.group}: ${(MODEL.coverage.byGroup[p.group].covered*100).toFixed(0)}% of total KVI weight.`);
+  const miss=MODEL.coverage.missing.map(m=>m.label);
+  if(miss.length) L.push("Metrics not yet in database: "+miss.join(", ")+".");
+  L.push("");
+  L.push("This model is an analytical scouting aid and does not replace");
+  L.push("professional scouting evaluation.");
+  L.push("");
+  L.push("KPL Value Index — research project by Amirkhan Magzhan");
+  L.push("Nazarbayev Intellectual School of Astana");
+  download(`report_${p.name.replace(/[^A-Za-z0-9]+/g,"_")}.txt`,L.join("\n"));
+}
+
+function exportChart(){
+  const svg=$("#scatter").cloneNode(true);
+  svg.setAttribute("xmlns","http://www.w3.org/2000/svg");
+  svg.insertAdjacentHTML("afterbegin",'<rect width="720" height="470" fill="#ffffff"/>');
+  download("kpl_performance_vs_market_value.svg",
+    '<?xml version="1.0" encoding="UTF-8"?>\n'+svg.outerHTML,"image/svg+xml");
+}
+
+/* ---------------- RENDER ---------------- */
+function render(){
+  const rows=filtered();
+  renderKpi(rows);
+  renderScatter(rows);
+  renderTable(rows);
+  renderProfile();
+  $$(".quad").forEach(q=>q.classList.toggle("on",state.quad===q.dataset.q));
+}
+
+/* ---------------- INIT ---------------- */
+(function init(){
+  // клубы
+  const clubs=[...new Set(MODEL.all.map(p=>p.club))].sort();
+  $("#fClub").innerHTML='<option value="ALL">All clubs</option>'+
+    clubs.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join("");
+
+  // возраст
+  const ages=MODEL.all.map(p=>p.age).filter(a=>a!=null);
+  const aMin=Math.min(...ages), aMax=Math.max(...ages);
+  const fa=$("#fAge"); fa.min=aMin; fa.max=aMax; fa.value=aMax; state.age=aMax;
+  $("#fAgeT").textContent="≤ "+aMax;
+
+  $("#fMvT").textContent="все";
+
+  // события фильтров
+  $$("#fPos button").forEach(b=>b.addEventListener("click",()=>{
+    $$("#fPos button").forEach(x=>x.classList.remove("on"));
+    b.classList.add("on"); state.pos=b.dataset.v; render();
+  }));
+  $("#fClub").addEventListener("change",e=>{state.club=e.target.value;render();});
+  fa.addEventListener("input",e=>{state.age=+e.target.value;$("#fAgeT").textContent="≤ "+e.target.value;render();});
+  $("#fMv").addEventListener("input",e=>{
+    state.mv=+e.target.value;
+    $("#fMvT").textContent = state.mv>=100 ? "все" : "≤ "+fmtMv(mvThreshold());
+    render();
+  });
+  $("#fCat").addEventListener("change",e=>{state.cat=e.target.value;render();});
+  $("#fReset").addEventListener("click",()=>{
+    state.pos="ALL";state.club="ALL";state.age=aMax;state.mv=100;state.cat="ALL";
+    state.quad=null;state.selected=null;state.sort="ui";state.dir=-1;
+    $$("#fPos button").forEach((x,i)=>x.classList.toggle("on",i===0));
+    $("#fClub").value="ALL"; fa.value=aMax; $("#fAgeT").textContent="≤ "+aMax;
+    $("#fMv").value=100; $("#fMvT").textContent="все"; $("#fCat").value="ALL";
+    render();
+  });
+
+  // сортировка таблицы
+  $$("#tbl th").forEach(th=>th.addEventListener("click",()=>{
+    const k=th.dataset.s;
+    if(state.sort===k) state.dir*=-1;
+    else { state.sort=k; state.dir=(k==="name"||k==="club"||k==="group")?1:-1; }
+    render();
+  }));
+
+  // квадранты
+  $$(".quad").forEach(q=>q.addEventListener("click",()=>{
+    state.quad = state.quad===q.dataset.q ? null : q.dataset.q;
+    render();
+  }));
+
+  // вкладки
+  $$(".tab").forEach(t=>t.addEventListener("click",()=>{
+    $$(".tab").forEach(x=>x.classList.remove("on")); t.classList.add("on");
+    ["dash","valid","about"].forEach(id=>
+      $("#tab-"+id).classList.toggle("hidden", id!==t.dataset.tab));
+    window.scrollTo({top:0,behavior:"smooth"});
+  }));
+
+  // экспорт
+  $("#dlCsv").addEventListener("click",exportCsv);
+  $("#dlReport").addEventListener("click",exportReport);
+  $("#dlChart").addEventListener("click",exportChart);
+
+  renderWarn(); renderDataQuality(); renderMethod(); render();
+
+  // диагностика в консоль — полезно при обновлении базы
+  console.log("KPL Value Dashboard | season:",SEASON,
+    "| records:",DB.length,
+    "| KVI computed:",MODEL.eligible.length,
+    "| insufficient data:",MODEL.excluded.length,
+    "| weight check:",MODEL.weightCheck);
+})();
+</script>
+</body>
+</html>
